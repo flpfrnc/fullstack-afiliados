@@ -6,11 +6,12 @@ from rest_framework.status import *
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.request import Request
 from rest_framework.response import Response
 from .exceptions import IncorretCredentials
 from .models import TransactionData, TransactionType
-from .serializers import TransactionDataSerializer, SigninSerializer
+from .serializers import TransactionDataSerializer, SigninSerializer, UserSerializer
 
 
 # APIViews were used over function based views or viewsets to keep the implementation simple
@@ -56,9 +57,10 @@ class SignInView(APIView):
         login(request, user)
 
         refresh_token = RefreshToken.for_user(user)
+        serializer = UserSerializer(user)
 
         response = {
-            'message': 'Successfully logged in',
+            'user': {'username': serializer.data['username']},
             'token': str(refresh_token.access_token),
             'refresh_token': str(refresh_token),
         }
@@ -67,15 +69,18 @@ class SignInView(APIView):
 
 class SignOutView(APIView):
     """logout route based on builtin session logou function"""
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
 
-    def post(self, request: Request):
+    def get(self, request: Request):
+
         logout(request)
-        return Response({'message': 'Successfully logged out'}, status=HTTP_200_OK)
+        return Response({'detail': 'Successfully logged out'}, status=HTTP_200_OK)
 
 
 class GetTransactionsView(APIView):
     """list all transactions"""
-
+    authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
 
     def get(self, request: Request) -> Response:
@@ -87,7 +92,7 @@ class GetTransactionsView(APIView):
 
 class SingleTransactionView(APIView):
     """list and edit single transactions route"""
-
+    authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
 
     def get(self, request: Request, id: int) -> Response:
@@ -123,7 +128,7 @@ class SingleTransactionView(APIView):
 
 class LoadTransactionsView(APIView):
     """loads transaction data from file upload"""
-
+    authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
 
     def post(self, request: Request) -> Response:
@@ -157,3 +162,4 @@ class LoadTransactionsView(APIView):
             return Response(serializer.data, status=HTTP_201_CREATED)
 
         return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
+    
