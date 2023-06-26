@@ -1,0 +1,39 @@
+[
+    {
+      "model": "affiliates_system.TransactionType",      
+      "pk": 1,
+      "fields": {
+        "description": "Venda produtor",
+        "nature": "Entrada",
+        "sign": "+"
+      }
+    },
+    {
+      "model": "affiliates_system.TransactionType",      
+      "pk": 2,
+      "fields": {
+        "description": "Venda afiliado",
+        "nature": "Entrada",
+        "sign": "+"
+      }
+    },
+    {
+      "model": "affiliates_system.TransactionType",      
+      "pk": 3,
+      "fields": {
+        "description": "Comissão paga",
+        "nature": "Saída",
+        "sign": "-"
+      }
+    },
+    {
+      "model": "affiliates_system.TransactionType",      
+      "pk": 4,
+      "fields": {
+        "description": "Comissão recebida",
+        "nature": "Entrada",
+        "sign": "+"
+      }
+    }
+   
+  ]
