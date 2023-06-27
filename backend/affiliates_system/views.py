@@ -9,7 +9,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.request import Request
 from rest_framework.response import Response
-from .exceptions import IncorretCredentials
+from .exceptions import IncorretCredentials, UniqueUserException, TransactionDataNotFound, TransactionTypeNotFound
 from .models import TransactionData, TransactionType
 from .serializers import TransactionDataSerializer, SigninSerializer, UserSerializer
 
@@ -34,7 +34,8 @@ class RegisterUserView(APIView):
             user.save()
 
         except IntegrityError:
-            raise Exception(f"Nome de usuário deve ser único")
+            raise UniqueUserException
+            
 
         return Response({"id": user.id, "username": user.username},  status=HTTP_201_CREATED)
 
@@ -121,7 +122,7 @@ class SingleTransactionView(APIView):
             transaction = TransactionData.objects.get(pk=id)
 
         except TransactionData.DoesNotExist:
-            raise ObjectDoesNotExist("Transação não encontrada")
+            raise TransactionDataNotFound
 
         return transaction
 
@@ -153,7 +154,7 @@ class LoadTransactionsView(APIView):
 
                 })
             except TransactionType.DoesNotExist:
-                raise ObjectDoesNotExist("Tipo de transação não encontrado")
+                raise TransactionTypeNotFound
 
         serializer = TransactionDataSerializer(data=transactions, many=True)
         if serializer.is_valid():
