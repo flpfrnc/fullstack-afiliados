@@ -124,7 +124,7 @@ class SingleTransactionView(APIView):
 
         transaction = self.get_existent_transaction(id)
         transaction.delete()
-        return Response({"profiles": f"profile {id} deleted"}, status=HTTP_204_NO_CONTENT)
+        return Response({"detail": f"transaction {id} deleted"}, status=HTTP_204_NO_CONTENT)
 
     def get_existent_transaction(self, id: int):
         try:
