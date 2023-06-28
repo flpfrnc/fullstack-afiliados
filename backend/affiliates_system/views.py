@@ -9,10 +9,10 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.request import Request
 from rest_framework.response import Response
-from .exceptions import IncorretCredentials, UniqueUserException, TransactionDataNotFound, TransactionTypeNotFound
+from .exceptions import IncorretCredentials, UserNotFoundException, UniqueUserException, TransactionDataNotFound, TransactionTypeNotFound, ValueParsingException
 from .models import TransactionData, TransactionType
 from .serializers import TransactionDataSerializer, SigninSerializer, UserSerializer
-
+from datetime import datetime
 
 # APIViews were used over function based views or viewsets to keep the implementation simple
 
@@ -28,7 +28,6 @@ class RegisterUserView(APIView):
 
     def post(self, request: Request) -> Response:
         try:
-            print(request.data)
             user = User(username=request.data['username'])
             user.set_password(request.data['password'])
             user.save()
@@ -50,15 +49,20 @@ class SignInView(APIView):
         username = serializer.data.get('username')
         password = serializer.data.get('password')
 
-        user = authenticate(request, username=username, password=password)
+        user = User.objects.filter(username=username)
 
         if not user:
+            raise UserNotFoundException
+
+        user_authenticated = authenticate(request, username=username, password=password)
+
+        if not user_authenticated:
             raise IncorretCredentials
 
-        login(request, user)
+        login(request, user_authenticated)
 
-        refresh_token = RefreshToken.for_user(user)
-        serializer = UserSerializer(user)
+        refresh_token = RefreshToken.for_user(user_authenticated)
+        serializer = UserSerializer(user_authenticated)
 
         response = {
             'user': {'username': serializer.data['username']},
@@ -76,6 +80,7 @@ class SignOutView(APIView):
     def get(self, request: Request):
 
         logout(request)
+        # 200 chosen over 204 for returning a successful logout message
         return Response({'detail': 'Successfully logged out'}, status=HTTP_200_OK)
 
 
@@ -100,6 +105,10 @@ class SingleTransactionView(APIView):
         transaction = self.get_existent_transaction(id)
         serializer = TransactionDataSerializer(transaction)
         return Response(serializer.data,  status=HTTP_200_OK)
+    
+
+    # the following methods are implemented but will not be used in this application
+    # i chose not to write tests for them as well
 
     def put(self, request: Request, id: int) -> Response:
         transaction = self.get_existent_transaction(id)
@@ -132,6 +141,9 @@ class LoadTransactionsView(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
 
+    def check_data_size(self, date, product, value, seller) -> bool:
+            return len(date) == 25 and len(product) == 30 and len(value) == 10 and len(seller) <= 20
+
     def post(self, request: Request) -> Response:
         file = request.FILES['sales'].open()
         rows = file.readlines()
@@ -147,20 +159,28 @@ class LoadTransactionsView(APIView):
 
                 transactions.append({
                     "transaction_type": transaction_type_id,
-                    "date": row.decode('utf-8')[1:26],
+                    "date": datetime.strptime(row.decode('utf-8')[1:26], "%Y-%m-%dT%H:%M:%S%z"),
                     "product": row.decode('utf-8')[26:56].strip(),
-                    "value": row.decode('utf-8')[56:66],
+                    "value": int(row.decode('utf-8')[56:66]),
                     "seller": row.decode('utf-8')[66:86].strip()
 
                 })
-            except TransactionType.DoesNotExist:
-                raise TransactionTypeNotFound
 
+            except Exception as e:
+                if isinstance(e, ValueError):
+                    raise ValueParsingException
+
+                if isinstance(e, ObjectDoesNotExist):
+                    raise TransactionTypeNotFound
+                
         serializer = TransactionDataSerializer(data=transactions, many=True)
         if serializer.is_valid():
             serializer.save()
-
+            
             return Response(serializer.data, status=HTTP_201_CREATED)
 
         return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
+    
+        
+               
     

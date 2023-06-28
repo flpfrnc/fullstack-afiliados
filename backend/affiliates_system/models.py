@@ -20,11 +20,11 @@ class TransactionData(models.Model):
         related_name='transaction',
         on_delete=models.CASCADE,
     )
-    date = models.DateTimeField(null=True, name="date")
-    product = models.CharField(max_length=50, null=True, name="product")
+    date = models.DateTimeField(name="date")
+    product = models.CharField(max_length=50, name="product")
     value = models.DecimalField(
-        decimal_places=2, max_digits=10, null=True, name="value")
-    seller = models.CharField(max_length=50, null=True, name="seller")
+        decimal_places=2, max_digits=10, name="value")
+    seller = models.CharField(max_length=50, name="seller")
     created_ad = models.DateTimeField(auto_now_add=True, name="created_at")
     updated_at = models.DateTimeField(auto_now=True, name="updated_at")
 
