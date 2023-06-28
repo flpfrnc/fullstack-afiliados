@@ -25,6 +25,7 @@ export default function Login() {
           />
           <footer className="px-8 w-full flex flex-col items-center justify-center gap-4">
             <button
+              data-testid="login-button"
               onClick={handleLogin}
               className="h-[40px] w-[250px] bg-blue-600 hover:bg-blue-500 active:bg-blue-800 rounded-lg text-white font-bold"
             >

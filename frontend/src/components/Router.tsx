@@ -16,7 +16,7 @@ function RoutesComponent() {
           index
           element={
             <Layout>
-              <Home />
+              <Home data-testid="home" />
             </Layout>
           }
         />
@@ -27,8 +27,8 @@ function RoutesComponent() {
 
   return (
     <Routes>
-      <Route path="/login" element={<Login />} />
-      <Route path="/register" element={<Register />} />
+      <Route data-testid="login" path="/login" element={<Login />} />
+      <Route data-testid="register" path="/register" element={<Register />} />
       <Route path="*" element={<Navigate to="/login" />} />
     </Routes>
   );

@@ -10,7 +10,7 @@ interface TransactionType {
   sign: string;
 }
 
-interface TransactionData {
+export interface TransactionData {
   transactions: {
     id: number;
     date: string;
@@ -40,8 +40,9 @@ export default function Home() {
       });
 
       fetchTransactionData();
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
+      alert(error?.response?.data.detail);
     }
   }
 
@@ -76,7 +77,10 @@ export default function Home() {
   return (
     <div className="sm:flex-col xl:flex xl:flex-row  gap-2 p-8">
       <div className="relative overflow-x-auto xl:w-4/6 sm:w-full h-[75vh]">
-        <table className="w-full text-sm text-left text-gray-500">
+        <table
+          data-testid="transaction-table"
+          className="w-full text-sm text-left text-gray-500"
+        >
           <thead className="sticky top-0 text-xs uppercase bg-gray-50 text-[#254A75]">
             <tr>
               <th scope="col" className="px-6 py-3">
@@ -105,7 +109,7 @@ export default function Home() {
           <tbody className="bg-white border-b">
             {transactionData?.transactions?.map((transaction, index) => {
               return (
-                <tr key={index}>
+                <tr key={index} data-testid="transaction-row">
                   <th
                     scope="row"
                     className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap"
@@ -138,7 +142,10 @@ export default function Home() {
         </table>
       </div>
       <div className="flex flex-col sm:w-full xl:w-2/6 p-2 gap-4">
-        <div className="h-fit shadow-lg rounded-lg flex flex-col justify-center items-center bg-white p-8">
+        <div
+          data-testid="total-transactions"
+          className="h-fit shadow-lg rounded-lg flex flex-col justify-center items-center bg-white p-8"
+        >
           <span className="italic font-bold text-[#254A75]">
             TOTAL DAS TRANSAÇÕES REALIZADAS:
           </span>
@@ -146,13 +153,17 @@ export default function Home() {
             {formatTransactionValue(transactionTotal)}
           </span>
         </div>
-        <div className="h-fit shadow-lg rounded-lg flex flex-col justify-center items-center bg-white p-8 gap-4">
+        <div
+          data-testid="load-transaction-data"
+          className="h-fit shadow-lg rounded-lg flex flex-col justify-center items-center bg-white p-8 gap-4"
+        >
           <span className="italic font-bold text-[#254A75] text-xl">
             Carregar Dados
           </span>
           <input
             type="file"
             id="fileUpload"
+            data-testid="file-input"
             onChange={(e) => {
               if (!e.target.files) return;
               setFile(e.target.files[0]);
@@ -160,6 +171,7 @@ export default function Home() {
             accept=".txt"
           />
           <button
+            data-testid="submit-file"
             onClick={handleSubmitFile}
             className="h-[40px] w-[250px] bg-blue-600 hover:bg-blue-500 active:bg-blue-800 rounded-lg text-white font-bold"
           >

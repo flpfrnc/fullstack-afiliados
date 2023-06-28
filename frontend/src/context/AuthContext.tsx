@@ -44,8 +44,7 @@ export function AuthProvider(props: AuthProviderProps) {
 
       setUserData(data.token, data.exp, data.user);
     } catch (error: any) {
-      console.log(error.response.data);
-      alert(error.response.data.detail);
+      alert(error.response?.data.detail);
       return;
     }
   }
@@ -64,11 +63,13 @@ export function AuthProvider(props: AuthProviderProps) {
     try {
       await axiosInstance.get("logout");
     } catch (error) {
-      console.error("Failed logging out from server");
+      console.error("Ocorreu um erro no login");
+      alert("Ocorreu um erro no login");
     }
     setUser(null);
     localStorage.removeItem("token");
     localStorage.removeItem("user");
+    localStorage.removeItem("exp");
   }
 
   // checks if there is already a user object stored

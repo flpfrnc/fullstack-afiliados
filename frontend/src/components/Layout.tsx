@@ -17,7 +17,7 @@ export default function Layout({ children }: HeaderProps) {
     <div>
       <div className="bg-[#254A75] h-[5rem] text-white flex items-center px-4 justify-between w-full">
         <span className="text-lg">FullStack Afiliados</span>
-        <button onClick={logout} title="Sair">
+        <button data-testid="logout" onClick={logout} title="Sair">
           <MdOutlineLogout size={25} />
         </button>
       </div>
