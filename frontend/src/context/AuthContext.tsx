@@ -42,7 +42,7 @@ export function AuthProvider(props: AuthProviderProps) {
         password,
       });
 
-      setUserData(data.token, data.user);
+      setUserData(data.token, data.exp, data.user);
     } catch (error: any) {
       console.log(error.response.data);
       alert(error.response.data.detail);
@@ -50,9 +50,10 @@ export function AuthProvider(props: AuthProviderProps) {
     }
   }
 
-  function setUserData(token: string, user: User) {
+  function setUserData(token: string, exp: string, user: User) {
     localStorage.setItem("token", token);
     localStorage.setItem("user", user.username);
+    localStorage.setItem("exp", exp);
 
     setUser({
       username: user.username,
@@ -74,6 +75,15 @@ export function AuthProvider(props: AuthProviderProps) {
   // and sets the authenticated user based on it
   useEffect(() => {
     (async () => {
+      const exp = localStorage.getItem("exp");
+
+      if (exp) {
+        const currentDate = new Date();
+        const expiration = new Date(Number(exp) * 1000);
+
+        if (currentDate > expiration) return logout();
+      }
+
       const user = localStorage.getItem("user");
       if (!user) {
         return;
