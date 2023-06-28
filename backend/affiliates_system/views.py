@@ -1,7 +1,7 @@
 from django.db import IntegrityError
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth import authenticate, login, logout
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, AbstractBaseUser
 from rest_framework.status import *
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
@@ -12,7 +12,11 @@ from rest_framework.response import Response
 from .exceptions import IncorretCredentials, UserNotFoundException, UniqueUserException, TransactionDataNotFound, TransactionTypeNotFound, ValueParsingException
 from .models import TransactionData, TransactionType
 from .serializers import TransactionDataSerializer, SigninSerializer, UserSerializer
-from datetime import datetime
+from datetime import datetime, timedelta
+import environ
+
+env = environ.Env()
+environ.Env.read_env()
 
 # APIViews were used over function based views or viewsets to keep the implementation simple
 
@@ -61,15 +65,33 @@ class SignInView(APIView):
 
         login(request, user_authenticated)
 
-        refresh_token = RefreshToken.for_user(user_authenticated)
-        serializer = UserSerializer(user_authenticated)
+        response = self.generate_access_token(user_authenticated)
 
-        response = {
+        return Response(response, status=HTTP_200_OK)
+    
+    
+    def generate_access_token(self, user: AbstractBaseUser):
+        """generates authentication data for a given valid user"""
+
+        refresh_token = RefreshToken.for_user(user)
+        serializer = UserSerializer(user)
+
+        return{
             'user': {'username': serializer.data['username']},
+            'exp': self.get_jwt_expiration(),
             'token': str(refresh_token.access_token),
             'refresh_token': str(refresh_token),
         }
-        return Response(response, status=HTTP_200_OK)
+
+
+    def get_jwt_expiration(self):
+        jwt_expiration_limit = env('JWT_TOKEN_EXPIRE')
+     
+        jwt_exp_time = datetime.now() + timedelta(hours=int(jwt_expiration_limit))
+
+        # parsing to int to remove decimals from timestamp
+        return int(jwt_exp_time.timestamp())
+
 
 
 class SignOutView(APIView):

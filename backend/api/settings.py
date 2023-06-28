@@ -75,8 +75,10 @@ CORS_ALLOW_ALL_ORIGINS = True
 # JWT
 # https://django-rest-framework-simplejwt.readthedocs.io/en/latest/settings.html
 
+JWT_EXPIRATION_LIMIT = env('JWT_TOKEN_EXPIRE')
+
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(hours=2),
+    'ACCESS_TOKEN_LIFETIME': timedelta(hours=int(JWT_EXPIRATION_LIMIT)),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
 }
 
