@@ -23,6 +23,11 @@ class UploadFileTestCase(BaseTestCase):
         self.assertEqual(response.json()[-1]["id"], 20)
 
 
+    def test_upload_no_valid_file_provided(self):
+        """It should return status 400 when no valid file is provided on upload"""
+        response = self.get_client_authenticated().post(reverse('affiliates:add-transactions'), {})
+        self.assertEqual(response.status_code, HTTP_400_BAD_REQUEST)
+
     def test_upload_file_incorrect_transaction_type(self):
         """It should return status 404 when file is uploaded with the wrong transaction type id"""
         text = SimpleUploadedFile("sales.txt", incorrect_type_file_content, content_type="text/plain")

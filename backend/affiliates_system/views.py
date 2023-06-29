@@ -163,10 +163,10 @@ class LoadTransactionsView(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
 
-    def check_data_size(self, date, product, value, seller) -> bool:
-            return len(date) == 25 and len(product) == 30 and len(value) == 10 and len(seller) <= 20
-
     def post(self, request: Request) -> Response:
+        if not 'sales' in request.FILES:
+            return Response({"detail": "Envie um arquivo válido"}, status=HTTP_400_BAD_REQUEST)
+        
         file = request.FILES['sales'].open()
         rows = file.readlines()
 

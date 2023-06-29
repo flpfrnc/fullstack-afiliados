@@ -1,4 +1,4 @@
-from django.test import TestCase, Client
+from django.test import TransactionTestCase, Client
 from django.urls import reverse
 from django.contrib.auth.models import User
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -35,7 +35,8 @@ incorrect_value_file_content = b"12022-01-15T19:20:30-03:CURSO DE BEM-ESTAR     
 empty_seller_file_content = b"12022-01-15T19:20:30-03:00CURSO DE BEM-ESTAR            0000012750"
 
 
-class BaseTestCase(TestCase): 
+class BaseTestCase(TransactionTestCase): 
+    reset_sequences = True
 
     def get_client_authenticated(self) -> Client:
         user = User(username="test")
