@@ -1,9 +1,10 @@
 import { useState } from "react";
 import UserForm from "../components/UserForm";
 import { axiosInstance } from "../api";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 export default function Register() {
+  const navigate = useNavigate();
   const [registrationCredentials, setRegistrationCredentials] = useState({
     username: "",
     password: "",
@@ -14,6 +15,9 @@ export default function Register() {
       await axiosInstance.post("register", {
         ...registrationCredentials,
       });
+
+      alert("Usuário criado com sucesso");
+      navigate("/login");
     } catch (error: any) {
       console.error(error);
       // errors were shown using builtin alert

@@ -1,5 +1,5 @@
 import { axiosInstance } from "../api";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { TransactionTypeOperation } from "../constants";
 import { formatTransactionValue } from "../utils";
 
@@ -21,12 +21,14 @@ export interface TransactionData {
     updated_at: string;
     transaction_type: TransactionType;
   }[];
+  length: number;
 }
 
 export default function Home() {
   const [transactionData, setTransactionData] = useState<TransactionData>();
   const [transactionTotal, setTransactionTotal] = useState<number>(0);
   const [file, setFile] = useState<File | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   async function handleSubmitFile() {
     const formData = new FormData();
@@ -40,6 +42,7 @@ export default function Home() {
       });
 
       fetchTransactionData();
+      resetFileInput();
     } catch (error: any) {
       console.error(error);
       alert(error?.response?.data.detail);
@@ -70,77 +73,96 @@ export default function Home() {
     calculateTransactionTotal();
   }, [transactionData]);
 
+  const resetFileInput = () => {
+    setFile(null);
+
+    if (inputRef.current) {
+      inputRef.current.value = "";
+    }
+  };
+
   useEffect(() => {
     fetchTransactionData();
   }, []);
 
   return (
     <div className="sm:flex-col xl:flex xl:flex-row  gap-2 p-8">
-      <div className="relative overflow-x-auto xl:w-4/6 sm:w-full h-[75vh]">
-        <table
-          data-testid="transaction-table"
-          className="w-full text-sm text-left text-gray-500"
+      {transactionData?.length ? (
+        <div className="relative overflow-x-auto xl:w-4/6 sm:w-full h-[75vh]">
+          <table
+            data-testid="transaction-table"
+            className="w-full text-sm text-left text-gray-500"
+          >
+            <thead className="sticky top-0 text-xs uppercase bg-gray-50 text-[#254A75]">
+              <tr>
+                <th scope="col" className="px-6 py-3">
+                  Id
+                </th>
+                <th scope="col" className="px-6 py-3">
+                  Produto
+                </th>
+                <th scope="col" className="px-6 py-3">
+                  Data da Transação
+                </th>
+                <th scope="col" className="px-6 py-3">
+                  Valor
+                </th>
+                <th scope="col" className="px-6 py-3">
+                  Vendedor
+                </th>
+                <th scope="col" className="px-6 py-3">
+                  Tipo da Transação
+                </th>
+                <th scope="col" className="px-6 py-3">
+                  Natureza
+                </th>
+              </tr>
+            </thead>
+            <tbody className="bg-white border-b">
+              {transactionData?.transactions?.map((transaction, index) => {
+                return (
+                  <tr key={index} data-testid="transaction-row">
+                    <th
+                      scope="row"
+                      className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap"
+                    >
+                      {transaction.id}
+                    </th>
+                    <td className="px-6 py-4">{transaction.product}</td>
+                    <td className="px-6 py-4">{transaction.date}</td>
+                    <td className="px-6 py-4">
+                      {formatTransactionValue(transaction.value)}
+                    </td>
+                    <td className="px-6 py-4">{transaction.seller}</td>
+                    <td className="px-6 py-4">
+                      {transaction.transaction_type.description}
+                    </td>
+                    <td
+                      className={`px-6 py-4 ${
+                        transaction.transaction_type.nature ===
+                        TransactionTypeOperation.INCOME
+                          ? "text-green-600"
+                          : "text-red-600"
+                      }`}
+                    >
+                      {transaction.transaction_type.nature}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      ) : (
+        <div
+          className="relative overflow-x-auto xl:w-4/6 sm:w-full h-fit flex justify-center items-center"
+          data-testid="no-transaction"
         >
-          <thead className="sticky top-0 text-xs uppercase bg-gray-50 text-[#254A75]">
-            <tr>
-              <th scope="col" className="px-6 py-3">
-                Id
-              </th>
-              <th scope="col" className="px-6 py-3">
-                Produto
-              </th>
-              <th scope="col" className="px-6 py-3">
-                Data da Transação
-              </th>
-              <th scope="col" className="px-6 py-3">
-                Valor
-              </th>
-              <th scope="col" className="px-6 py-3">
-                Vendedor
-              </th>
-              <th scope="col" className="px-6 py-3">
-                Tipo da Transação
-              </th>
-              <th scope="col" className="px-6 py-3">
-                Natureza
-              </th>
-            </tr>
-          </thead>
-          <tbody className="bg-white border-b">
-            {transactionData?.transactions?.map((transaction, index) => {
-              return (
-                <tr key={index} data-testid="transaction-row">
-                  <th
-                    scope="row"
-                    className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap"
-                  >
-                    {transaction.id}
-                  </th>
-                  <td className="px-6 py-4">{transaction.product}</td>
-                  <td className="px-6 py-4">{transaction.date}</td>
-                  <td className="px-6 py-4">
-                    {formatTransactionValue(transaction.value)}
-                  </td>
-                  <td className="px-6 py-4">{transaction.seller}</td>
-                  <td className="px-6 py-4">
-                    {transaction.transaction_type.description}
-                  </td>
-                  <td
-                    className={`px-6 py-4 ${
-                      transaction.transaction_type.nature ===
-                      TransactionTypeOperation.INCOME
-                        ? "text-green-600"
-                        : "text-red-600"
-                    }`}
-                  >
-                    {transaction.transaction_type.nature}
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
+          <span className="italic font-bold text-[#254A75] text-xl">
+            NENHUM DADO DISPONÍVEL
+          </span>
+        </div>
+      )}
       <div className="flex flex-col sm:w-full xl:w-2/6 p-2 gap-4">
         <div
           data-testid="total-transactions"
@@ -164,6 +186,7 @@ export default function Home() {
             type="file"
             id="fileUpload"
             data-testid="file-input"
+            ref={inputRef}
             onChange={(e) => {
               if (!e.target.files) return;
               setFile(e.target.files[0]);

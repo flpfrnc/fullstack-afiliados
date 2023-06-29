@@ -4,17 +4,19 @@ import { describe, expect, test } from "vitest";
 import Home from "../screens/Home";
 
 describe("Home", () => {
-  test("should render table component with no values", async () => {
+  test("should not render table component with no values", async () => {
     const { queryByTestId } = render(<Home />);
-    expect(queryByTestId("transaction-table")).toBeInTheDocument();
+    expect(queryByTestId("transaction-table")).not.toBeInTheDocument();
     expect(queryByTestId("transaction-row")).not.toBeInTheDocument();
   });
 
-  test("should render table successfully", async () => {
-    const { queryByTestId, findByText } = render(<Home />);
+  test("should render no transaction component", async () => {
+    const { queryByTestId } = render(<Home />);
+    expect(queryByTestId("no-transaction")).toBeInTheDocument();
+  });
 
-    expect(queryByTestId("transaction-table")).toBeInTheDocument();
-    expect(queryByTestId("load-transaction-data")).toBeInTheDocument();
+  test("should render data successfully", async () => {
+    const { findByText } = render(<Home />);
 
     const value = await findByText("CURSO DE BEM-ESTAR");
     expect(value.innerHTML).toBe("CURSO DE BEM-ESTAR");

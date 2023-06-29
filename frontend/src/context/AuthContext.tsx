@@ -43,6 +43,7 @@ export function AuthProvider(props: AuthProviderProps) {
       });
 
       setUserData(data.token, data.exp, data.user);
+      window.location.href = window.location.href.replace("/login", "/");
     } catch (error: any) {
       alert(error.response?.data.detail);
       return;
