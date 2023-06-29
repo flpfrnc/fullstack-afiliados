@@ -1,132 +1,287 @@
 # Fullstack Afiliados
 
-O objetivo desse teste é avaliar as suas habilidades em programação.
+> This is a challenge by [Coodesh](https://coodesh.com/)
 
-### Antes de começar
- 
-- Prepare o projeto para ser disponibilizado no Github, copiando o conteúdo deste repositório para o seu (ou utilize o fork do projeto e aponte para o Github). Confirme que a visibilidade do projeto é pública (não esqueça de colocar no readme a referência a este challenge);
-- O projeto deve utilizar a Linguagem específica na sua Vaga (caso esteja se candidatando). Por exempo: Python, R, Scala e entre outras;
-- Considere como deadline 5 dias a partir do início do desafio. Caso tenha sido convidado a realizar o teste e não seja possível concluir dentro deste período, avise a pessoa que o convidou para receber instruções sobre o que fazer.
-- Documentar todo o processo de investigação para o desenvolvimento da atividade (README.md no seu repositório); os resultados destas tarefas são tão importantes do que o seu processo de pensamento e decisões à medida que as completa, por isso tente documentar e apresentar os seus hipóteses e decisões na medida do possível.
+<p>
+    The project goal is to make an practical interface to manage transaction data - <em>read and upload transaction files</em> - given the following structure:
+</p>
 
-## Descrição do projeto
+```
+tb_transaction_data:
 
-Surgiu uma nova demanda urgente e precisamos de uma área exclusiva para fazer o
-upload de um arquivo das transações feitas na venda de produtos por nossos
-clientes.
+| field   | type   | relation                 |
+| ------- | ------ | ------------------------ |
+| id      | int PK |                          |
+| type    | int FK | transaction_type.type_id |
+| date    | string |                          |
+| product | string |                          |
+| value   | string |                          |
+| seller  | string |                          |
 
-Nossa plataforma trabalha no modelo criador-afiliado, sendo assim um criador
-pode vender seus produtos e ter 1 ou mais afiliados também vendendo esses
-produtos, desde que seja paga uma comissão por venda.
+tb_transaction_type:
 
-Sua tarefa é construir uma interface web que possibilite o upload de um arquivo
-de transações de produtos vendidos, normalizar os dados e armazená-los em um
-banco de dados relacional.
+| field         | type   | relation         |
+| ------------- | ------ | ---------------- |
+| type_id       | int PK |                  |
+| description   | string |                  |
+| nature        | string |                  |
+| sign          | string |                  |
+```
 
-Você deve utilizar o arquivo [sales.txt](sales.txt) para fazer o teste da
-aplicação. O formato esá descrito na seção "Formato do arquivo de entrada".
+## Thinking Proccess
+
+Here is a brief description of what my thinking proccess was like during this challenge:
+
+### backend:
+
+- Setup db model considering the relations provided in the challenge description
+- Get the most familiar technologies matching my experience with Python / Typescript.
+- Setup the backend first with a simple api view to test connection
+- Setup the main endpoint which was responsible for uploading the sales.txt file to the backend, reading the file hardcoded before sending any file by requests
+- Implement the business rule which was to parse the file according to field sizes
+- Follow the happy path and insert file using a local db <em>sqlite3</em>
+- Handle exceptions by manually changing the sales.txt file to match possible errors
+- Setup request file upload
+- Validate the data using serializers
+- Create authentication endpoints and authentications rules
+- Procceed with testing the backend
+
+### frontend:
+
+- Choose the main technologies: <em>Vite/Vitest</em>
+- Think about rather needing any contexts / routers
+- Setup the main pages and components needed
+- Implement routing
+- Implement JWT authentication / session handling
+- Write frontend tests
+
+## Used techs
+
+The main used technologies were the following:
+
+- Python + [Django](https://www.djangoproject.com/) + [Django REST Framework](https://www.django-rest-framework.org/)
+- [Simple JWT](https://django-rest-framework-simplejwt.readthedocs.io/en/latest/)
+- Testing: Django Testcase
+
+- [React](https://react.dev/) + [Vite](https://vitejs.dev/) Typescript
+- Testing: [Vitest](https://vitest.dev/)
+- Handling Requests: [axios](https://axios-http.com/ptbr/docs/intro)
+- Routing: [React Router](https://reactrouter.com/en/main)
+
+## Usage:
+
+You'll need to have docker installed to run this project:
+https://docs.docker.com/engine/install/
+
+```bash
+# properly clone the repository
+$ git clone https://github.com/flpfrnc/fullstack-afiliados.git
+
+# Access the project folder
+$ cd fullstack-afiliados
+
+# considering you have docker and docker-composed installed
+# build the images
+$ docker-compose build --no-cache
+
+# start the container
+$ docker-compose up
+```
+
+> ## **warning**
+
+> some environment template files provided bellow to properly run this project:
+
+> security issues were ignored for this step once it's not a production implementation
+
+`fullstack_afiliados/frontend/.env`
+
+```.env
+VITE_AXIOS_BASE_URL=http://127.0.0.1:8000/api/
+```
+
+`fullstack_afiliados/backend/api/.env`
+
+```
+SECRET_KEY=s3Cr3T
+DEBUG=True
+JWT_TOKEN_EXPIRE=2
+
+POSTGRES_PORT=5432
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=postgres
+POSTGRES_DB=byx
+```
+
+## Running tests:
+
+```bash
+# test backend
+$ docker-compose run --rm backend sh -c "python manage.py test affiliates_system --verbosity 2"
+
+# test frontend
+$ docker-compose run --rm frontend sh -c "npm run test"
+
+# coverage frontend
+$ docker-compose run --rm frontend sh -c "npm run coverage"
+```
+
+## API Documentation:
+
+<details>
+<summary>
+here are the endpoints and params needed for using the api
+</summary>
+
+```
+baseUrl: http://127.0.0.1:8000/api
+```
+
+> ### Authentication:
+
+```
+"/auth"
+
+methods: POST
+
+headers: Content-Type: application/json
+
+body: { "username": string, "password": string }
+
+response:
+{
+	"user": {
+		"username": string
+	},
+	"exp": number,
+	"token": string,
+	"refresh_token": string
+}
+```
+
+> ### Registration:
+
+```
+"/register"
+
+methods: POST
+
+headers: Content-Type: application/json
+
+body: { "username": string, "password": string }
+```
+
+> ### Logout:
+
+```
+"/logout"
+
+methods: GET
+
+headers: [{
+    Authorization: "Bearer token"
+}]
+
+response:
+{
+	"detail": "Successfully logged out"
+}
+```
+
+> ### Add Transactions:
+
+```
+"/add-data"
+
+methods: POST
+
+headers: [{
+    Content-Type: multipart/form-data,
+    Authorization: "Bearer token"
+}]
 
 
-## Requisitos Funcionais
+body: { "sales": bytes }
 
-Sua aplicação deve:
+expects: ".txt" file
+```
 
-1. Ter uma tela (via formulário) para fazer o upload do arquivo
-2. Fazer o parsing do arquivo recebido, normalizar os dados e armazená-los em um
-   banco de dados relacional, seguindo as definições de interpretação do arquivo
-3. Exibir a lista das transações de produtos importadas por produtor/afiliado,
-   com um totalizador do valor das transações realizadas
-4. Fazer tratamento de erros no backend, e reportar mensagens de erro amigáveis
-   no frontend.
+> ### Read Transactions:
 
-## Requisitos Não Funcionais
+```
+"/read-data"
 
-1. A aplicação deve ser simples de configurar e rodar, compatível com ambiente
-   Unix. Você deve utilizar apenas bibliotecas gratuitas ou livres.
-2. Utilize docker para os diferentes serviços que compõe a aplicação para
-   que funcione facilmente fora do seu ambiente pessoal.
-3. Use qualquer banco de dados relacional.
-4. Use commits pequenos no Git e escreva uma boa descrição para cada um.
-5. Escreva unit tests tanto no backend quanto do frontend.
-6. Faça o código mais legível e limpo possível.
-7. Escreva o código (nomes e comentários) em inglês. A documentação pode ser em
-   português se preferir.
+methods: GET
 
-## Requisitos Bônus
+headers: [{
+    Content-Type: multipart/form-data,
+    Authorization: "Bearer token"
+}]
 
-Sua aplicação não precisa, mas ficaremos impressionados se ela:
+body: { "sales": bytes }
 
-1. Tiver documentação das APIs do backend.
-2. Utilizar docker-compose para orquestar os serviços num todo.
-3. Ter testes de integração ou end-to-end.
-4. Tiver toda a documentação escrita em inglês fácil de entender. 
-5. Lidar com autenticação e/ou autorização.
+response:
+{
+    transactions:
+    [
+        {
+            "id": number,
+            "date": datetime string,
+            "product": string,
+            "value": string,
+            "seller": string,
+            "created_at": datetime string,
+            "updated_at": datetime string,
+            "transaction_type": {
+                "type_id": number,
+                "description": string,
+                "nature": string,
+                "sign": string
+            }
+        }
+    ],
+    length: number
+}
+```
 
-## Formato do arquivo de entrada
+> ### Single Transaction:
 
-| Campo    | Início | Fim | Tamanho | Descrição                      |
-| -------- | ------ | --- | ------- | ------------------------------ |
-| Tipo     | 1      | 1   | 1       | Tipo da transação              |
-| Data     | 2      | 26  | 25      | Data - ISO Date + GMT          |
-| Produto  | 27     | 56  | 30      | Descrição do produto           |
-| Valor    | 57     | 66  | 10      | Valor da transação em centavos |
-| Vendedor | 67     | 86  | 20      | Nome do vendedor               |
+```
+"/read-data/:id"
 
-### Tipos de transação
+# only get used in this project
+methods: PUT, GET, DELETE
 
-Esses são os valores possíveis para o campo Tipo:
+headers: [{
+    Content-Type: multipart/form-data,
+    Authorization: "Bearer token"
+}]
 
-| Tipo | Descrição         | Natureza | Sinal |
-| ---- | ----------------- | -------- | ----- |
-| 1    | Venda produtor    | Entrada  | +     |
-| 2    | Venda afiliado    | Entrada  | +     |
-| 3    | Comissão paga     | Saída    | -     |
-| 4    | Comissão recebida | Entrada  | +     |
+# body only used if not GET method
+body: {
+    "transaction_type": int,
+    "date": datetime string,
+    "product": string,
+    "value": int,
+    "seller": string
+}
 
-## Avaliação
+response:
+{
+    "id": number,
+    "date": datetime string,
+    "product": string,
+    "value": string,
+    "seller": string,
+    "created_at": datetime string,
+    "updated_at": datetime string,
+    "transaction_type": {
+        "type_id": number,
+        "description": string,
+        "nature": string,
+        "sign": string
+    }
+}
+```
 
-Seu projeto será avaliado de acordo com os seguintes critérios:
-
-1. Documentação do setup do ambiente e execução que rode a aplicação com
-   sucesso.
-2. Cumprimento dos [requisitos funcionais](#Requisitos-Funcionais) e
-   [não funcionais](#Requisitos-Nao-Funcionais).
-3. Boa estruturação do componentes e layout de código, mas sem over engineering.
-3. Legibilidade do código.
-4. Boa cobertura de testes.
-5. Claridade e extensão da documentação.
-6. Cumprimento de algum [requisito bônus](#Requisitos-Bonus).
-
-## Readme do Repositório
-
-- Deve conter o título do projeto
-- Uma descrição sobre o projeto em frase
-- Deve conter uma lista com linguagem, framework e/ou tecnologias usadas
-- Como instalar e usar o projeto (instruções)
-- Não esqueça o [.gitignore](https://www.toptal.com/developers/gitignore)
-- Se está usando github pessoal, referencie que é um challenge by coodesh:  
-
->  This is a challenge by [Coodesh](https://coodesh.com/)
-
-## Finalização e Instruções para a Apresentação
-
-Avisar sobre a finalização e enviar para correção.
-
-1. Confira se você respondeu o Scorecard anexado na Vaga que se candidatou;
-2. Confira se você respondeu o Mapeamento anexado na Vaga que se candidatou;
-3. Acesse [https://coodesh.com/challenges/review](https://coodesh.com/challenges/review);
-4. Adicione o repositório com a sua solução;
-5. Grave um vídeo, utilizando o botão na tela de solicitar revisão da Coodesh, com no máximo 5 minutos, com a apresentação do seu projeto. Utilize o tempo para:
-- Explicar o objetivo do desafio
-- Quais tecnologias foram utilizadas
-- Mostrar a aplicação em funcionamento
-- Foque em pontos obrigatórios e diferenciais quando for apresentar.
-6. Adicione o link da apresentação do seu projeto no README.md.
-7. Verifique se o Readme está bom e faça o commit final em seu repositório;
-8. Confira a vaga desejada;
-9. Envie e aguarde as instruções para seguir no processo. Sucesso e boa sorte. =)
-
-## Suporte
-
-Use a [nossa comunidade](https://discord.gg/rdXbEvjsWu) para tirar dúvidas sobre o processo ou envie uma mensagem diretamente a um especialista no chat da plataforma. 
-
+</details>
