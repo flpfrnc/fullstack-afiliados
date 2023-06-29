@@ -2,6 +2,8 @@
 
 > This is a challenge by [Coodesh](https://coodesh.com/)
 
+> Project presentation link: https://www.loom.com/embed/8c14315091ca432ea56a23a35fa60683
+
 <p>
     The project goal is to make an practical interface to manage transaction data - <em>read and upload transaction files</em> - given the following structure:
 </p>
